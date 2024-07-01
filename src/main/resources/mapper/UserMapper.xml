@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.community.mapper.UserMapper">
+
+	<!-- 사용자 정보 중복 확인 -->
+	<!-- 아이디 중복 확인 -->
+	<select id="isExistUserId" resultType="int">
+		<![CDATA[
+			select 1 
+			from dual 
+			where exists ( select 1 from user_tb where user_id = #{user_id} ) 
+		]]>
+	</select>
+	
+	<!-- 별명 중복 확인 -->
+	<select id="isExistUserChr" resultType="int">
+		<![CDATA[
+			select 1 
+			from dual 
+			where exists ( select 1 from user_tb where user_chr = #{user_chr} ) 
+		]]>
+	</select>
+	
+	<!-- 이메일 중복 확인 -->
+	<select id="isExistUserEmail" resultType="int">
+		<![CDATA[
+			select 1 
+			from dual 
+			where exists ( select 1 from user_tb where user_email = #{user_email} ) 
+		]]>
+	</select>
+
+	<!-- 암호화된 비밀번호 조회 -->
+	<select id="readEncryptedUserPw" resultType="String">
+		<![CDATA[
+			select user_pw from user_tb where user_id = #{user_id} 
+		]]>
+	</select>
+
+
+	<!-- 사용자 CRUD -->
+	<!-- 계정 생성 -->
+	<insert id="createUser">
+		<![CDATA[
+			insert into user_tb(user_no, user_id, user_pw, user_chr, user_email) 
+			select get_seq('user_seq'), #{user_id}, #{user_pw}, #{user_chr}, #{user_email} 
+			from dual 
+			where not exists (
+							select 1 
+							from user_tb 
+							where user_id = '#{user_id} ) 
+			and not exists ( 
+							select 1 
+							from user_tb 
+							where user_email = #{user_email} ) 
+		]]>
+	</insert>
+
+	<!-- 계정 조회 -->
+	<select id="readUser" resultType="com.community.vo.UserVO">
+		<![CDATA[
+			select user_no, user_chr, user_email, user_regdate, user_image 
+			from user_tb 
+			where user_id = #{user_id} 
+		]]>
+	</select>
+	
+	<!-- 비밀번호 수정 -->
+	<update id="updateUserPw">
+		<![CDATA[
+			update user_tb set user_pw = #{user_pw} where user_id = #{user_id} 
+		]]>
+	</update>
+	
+	<!-- 별명 수정 -->
+	<update id="updateUserChr">
+		<![CDATA[
+			update user_tb set user_chr = #{user_chr} where user_id = #{user_ud} 
+		]]>
+	</update>
+	
+	<!-- 이메일 수정 -->
+	<update id="updateUserEmail">
+		<![CDATA[
+			update user_tb set user_email = #{user_email} where user_id = #{user_id} 
+		]]>
+	</update>
+	
+	<!-- 사진 경로 수정 -->
+	<update id="updateUserImage">
+		<![CDATA[
+			update user_tb set user_image = #{user_image} where user_id = #{user_id} 
+		]]>
+	</update>
+	
+	<!-- 계정 삭제 -->
+	<delete id="deleteUser">
+		<![CDATA[
+			delete from user_tb where user_id = #{user_id} 
+		]]>
+	</delete>
+	
+</mapper>

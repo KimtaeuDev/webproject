@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.community.mapper.ReplyMapper">
+	
+	<!-- 댓글 총 개수 조회 -->
+	<select id="selectReplyCount" resultType="int">
+		<![CDATA[	
+			select count(*) 
+			from reply_tb 
+			where board_type = #{board_type} and board_no = #{board_no}  
+		]]>
+	</select>
+	
+	<!-- 댓글 리스트 조회 -->
+	<select id="selectReplyList" parameterType="hashmap"
+		resultType="com.community.vo.ReplyVO">
+		<![CDATA[	
+			select board_no, reply_no, reply_group, reply_dept, 
+			        reply_writer, reply_content, reply_regdate, reply_good
+			from(
+			    select rownum rnum, board_no, reply_no, reply_group, reply_dept, 
+			            reply_writer, reply_content, reply_regdate, reply_good
+			    from(
+			        select board_no, reply_no, reply_group, reply_dept, 
+			        		reply_writer, reply_content, reply_regdate, reply_good
+			        from reply_tb
+			        where board_no = #{board_no} and board_type = #{board_type} 
+			        ]]>
+			        <choose>
+				        <when test="reply_order == 'asc' ">
+				        <![CDATA[
+				       	 order by reply_group asc, reply_no asc) 
+				       	]]>
+				        </when>
+				        <when test="reply_order == 'desc' ">
+				        <![CDATA[
+				        	order by reply_group desc, reply_no desc) 
+				        		order by rownum desc
+				        ]]>
+				        </when>
+			        </choose>
+			        <![CDATA[	
+			) where rnum between #{startRow} and #{endRow} 
+		]]>
+	</select>
+	
+	<!-- 댓글 생성 및 수정 -->
+	<insert id="addReply" parameterType="com.community.vo.ReplyVO">
+		<![CDATA[	
+			insert into reply_tb(
+				board_no,
+				board_type,
+				reply_no,
+				reply_group,
+				reply_dept,
+				reply_writer,
+				reply_content
+			) values (
+				#{board_no},
+				#{board_type}, 
+				(select nvl(max(reply_no), 0) + 1 from reply_tb 
+				where board_no = #{board_no} 
+				and board_type = #{board_type}),
+				#{reply_group},
+				#{reply_dept},
+				#{reply_writer},
+				#{reply_content}
+	        )
+		]]>
+		
+		<![CDATA[	
+			merge into reply_tb 
+			using dual 
+			on (#{board_no} > 0) 
+			when matched then 
+			update set board_writer = #{board_writer}, 
+						board_content = #{board_content}, 
+						board_updatedate = sysdate 
+			where board_no = #{board_no} and board_type = #{board_type} 
+			when not matched then 
+			insert into reply_tb(
+				board_no,
+				board_type,
+				reply_no,
+				reply_group,
+				reply_dept,
+				reply_writer,
+				reply_content
+			) values (
+				#{board_no},
+				#{board_type}, 
+				(select nvl(max(reply_no), 0) + 1 from reply_tb 
+				where board_no = #{board_no} 
+				and board_type = #{board_type}),
+				#{reply_group},
+				#{reply_dept},
+				#{reply_writer},
+				#{reply_content}
+	        )
+		]]>
+	</insert>
+	
+	<!-- 댓글 삭제 -->
+	<delete id="deleteReply">
+		<![CDATA[	
+			delete from reply_tb 
+			where board_no = #{board_no} 
+			and board_type = #{board_type} 
+			and reply_no = #{reply_no} 
+		]]>
+	</delete>
+	
+
+</mapper>

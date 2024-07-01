@@ -1,0 +1,59 @@
+html, body{
+	margin: 0px auto;
+	padding: 0px auto;
+}
+
+body {
+	width: 98vw;
+	height:auto;
+	display: block;
+	text-align: center;
+	background-color: #2c2c2c;
+}
+
+.page_header {
+	width: 100%;
+	height: 10%;
+	background-color: white;
+}
+
+.page_nav {
+	width: 100%;
+	height: 10%;
+	background-color: #2c2c2c;
+}
+
+.page_aside {
+	width: 15%;
+	height: auto;
+	background-color: white;
+	float: left;
+}
+
+.page_main {
+	width: 70%;
+	height: auto;
+	background-color: #3f3f3f;
+	float: left;
+}
+
+.page_footer {
+	width: 100%;
+	height: 20%;
+	text-align: center;
+	background-color: #3f3f3f;
+	float: left;
+}
+
+section {
+	width: 100%;
+	height: 100%;
+	margin: auto;
+}
+
+article {
+	width: 100%;
+	height: 100%;
+	background-color: red;
+	margin: auto;
+}

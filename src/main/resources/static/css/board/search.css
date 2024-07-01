@@ -1,0 +1,26 @@
+pre {
+	background-color: gray;
+	padding: 10px;
+	overflow: auto;
+	white-space: pre-wrap;
+}
+
+.reply {
+	background-color: blue;
+}
+
+.rereply {
+	background-color: yellow;
+}
+
+.paging > ul > li{
+	width:40px;
+	height:40px;
+	font-size: 20px;
+	background-color: white;
+	
+}
+
+.list > table{
+	margin: auto;
+}

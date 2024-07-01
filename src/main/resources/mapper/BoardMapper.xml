@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.community.mapper.BoardMapper">
+
+	<!-- 게시판 이름 확인 -->
+	<select id="selectBoardName" parameterType="String" resultType="String">
+			<![CDATA[	
+				select board_name 
+				from board_type_tb 
+				where board_type = #{board_type} 
+			]]>
+	</select>
+	
+	<!-- 글 조회수 증가 -->
+	<update id="updateBoardViews" parameterType="int">
+		<![CDATA[
+			update board_tb 
+			set board_views = board_views + 1 
+			where board_no = #{board_no} 
+		]]>
+	</update>
+
+	<!-- 글 총 개수 조회 -->
+	<select id="selectBoardTotal" resultType="int">
+		<![CDATA[	
+			select count(*) 
+			from board_tb 
+			where board_type = #{board_type} 
+		]]>
+		<choose>
+			<when test="keyword_type == 'all' " />
+			<when test="keyword_type == 'title' ">and board_title like '%'||#{keyword}||'%'</when>
+			<when test="keyword_type == 'content' ">and board_content like '%'||#{keyword}||'%'</when>
+			<when test="keyword_type == 'writer' ">and board_writer like '%'||#{keyword}||'%'</when>
+			<otherwise />
+		</choose>
+	</select>
+
+	<!-- 글 리스트 얻기 -->
+	<select id="selectBoardList" parameterType="hashmap"
+		resultType="com.community.vo.BoardVO">
+		<![CDATA[	
+			select board_no, board_writer, board_type, board_title, board_views, board_good, board_regdate, 
+				(select count(*) 
+			    from reply_tb 
+			    where board_no = b.board_no)reply_count
+			from( 
+			    select rownum rnum, board_no, board_writer, 
+					    board_type, board_title, board_views, 
+					    board_good, board_regdate 
+			    from(
+				    select board_no, board_writer, 
+				    		board_type, board_title, board_views, 
+				    		board_good, board_regdate
+				    from board_tb 
+				    where board_type = #{board_type} 
+				    ]]>
+					<choose>
+						<when test="keyword_type == 'all' " />
+						<when test="keyword_type == 'title' ">
+							and board_title like '%'||#{keyword}||'%'
+						</when>
+						<when test="keyword_type == 'content' ">
+							and board_content like '%'||#{keyword}||'%'
+						</when>
+						<when test="keyword_type == 'writer' ">
+							and board_writer like '%'||#{keyword}||'%'
+						</when>
+						<otherwise />
+					</choose>
+					<![CDATA[ 
+					order by board_no desc
+				)
+			)b where rnum between #{startRow} and #{endRow} 
+		]]>
+	</select>
+	
+	<!-- 글 읽기 -->
+	<select id="selectBoard"
+		resultType="com.community.vo.BoardVO">
+		<![CDATA[
+			select board_title, board_writer, board_content, board_regdate, board_good, board_bad 
+			from board_tb 
+			where board_no = #{board_no}  
+		]]>
+	</select>
+	
+	<!-- 글 갱신 -->
+	<update id="insertBoard" parameterType="com.community.vo.BoardVO">
+		<![CDATA[	
+			merge into board_tb 
+			using dual 
+			on (#{board_no} > 0) 
+			when matched then 
+			update set board_writer = #{board_writer}, 
+						board_content = #{board_content}, 
+						board_updatedate = sysdate 
+			where board_no = #{board_no} and board_type = #{board_type} 
+			when not matched then 
+			insert (board_no, board_title, board_writer, board_content, board_type) 
+			values (#{board_no}, #{board_title}, #{board_writer}, #{board_content}, #{board_type}) 
+					<selectKey resultType="int" keyProperty="board_no" order="AFTER">
+		]]>
+				<selectKey resultType="int" keyProperty="board_no" order="AFTER">
+			<![CDATA[	
+				select max(board_no) from board_tb 
+			]]>
+		</selectKey>
+	</update>
+	
+	<!-- 글 삭제 -->
+	<update id="deleteBoard">
+		<![CDATA[	
+			delete from board_tb 
+			where board_no = #{board_no} and board_type = #{board_type} 
+		]]>
+	</update>
+	
+</mapper>
